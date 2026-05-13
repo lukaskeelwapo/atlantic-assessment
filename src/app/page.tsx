@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Product as ProductType } from "./lib/products"
 import { Registration } from "./lib/registrations"
 import { Product } from "./components/Product"
+import { Entitlements } from "./lib/entitlements"
 
 // This is where users can see their products, and subscribe or unsubscribe
 export default function Home() {
@@ -11,21 +12,26 @@ export default function Home() {
   const [userId, setUserId] = useState("")
   const [products, setProducts] = useState<ProductType[]>([])
   const [registrations, setRegistrations] = useState<Registration[]>([])
+  const [entitlements, setEntitlements] = useState<Entitlements[]>([])
 
   // load the users data
   async function loadUserData() {
     if (!userId) return
 
-    const [productsRes, regRes] = await Promise.all([
+    const [productsRes, regRes, entitlementsRes] = await Promise.all([
       fetch("/api/products"),
       fetch(`/api/registrations?userId=${userId}`),
+      fetch(`api/entitlements/${userId}`)
     ])
 
     const productsData = await productsRes.json()
     const registrationsData = await regRes.json()
+    const entitlementsData = await entitlementsRes.json()
 
     setProducts(Object.values(productsData))
     setRegistrations(registrationsData.registrations)
+    console.log(entitlementsData.entitlements)
+    setEntitlements(entitlementsData.entitlements)
   }
 
   // subscribe to a new product
@@ -107,8 +113,18 @@ export default function Home() {
           />
         ))}
 
+        <h2>Entitlements</h2>
+
+        <ul className="m-4">
+          {entitlements.map((e) => (
+            <li key={e}>{e}</li>
+          ))}
+        </ul>
+
         <button onClick={clearUserData}> Log Out </button>
-      </div> }
+      </div> 
+      
+      }
     </div>
   )
 }
