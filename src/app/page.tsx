@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 
+// This is where users can see their products, and subscribe or unsubscribe
 export default function Home() {
 
   const [entitlements, setEntitlements] =
@@ -9,7 +10,7 @@ export default function Home() {
 
   async function loadEntitlements() {
     const response = await fetch(
-      "/api/entitlements"
+      "/api/entitlements/u1"
     )
 
     const data = await response.json()
