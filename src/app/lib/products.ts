@@ -1,7 +1,7 @@
 import { Entitlements } from "./entitlements"
 
 // A product has access to a specific list of entitlements
-type Product = {
+export type Product = {
     name: string,
     id: string,
 

@@ -1,34 +1,34 @@
 "use client"
 
 import { useState } from "react"
+import { Product } from "./lib/products"
+import { Registration } from "./lib/registrations"
 
 // This is where users can see their products, and subscribe or unsubscribe
 export default function Home() {
 
   const [userId, setUserId] = useState("")
-  const [productId, setProductId] = useState("digital")
-  const [entitlements, setEntitlements] = useState<string[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [registrations, setRegistrations] = useState<Registration[]>([])
 
-  // load the entitlements for a given user
-  async function loadEntitlements() {
+  // load the users data
+  async function loadUserData() {
     if (!userId) return
 
-    const response = await fetch(
-      `/api/entitlements/${userId}`
-    )
+    const [productsRes, regRes] = await Promise.all([
+      fetch("/api/products"),
+      fetch(`/api/registrations?userId=${userId}`),
+    ])
 
-    const data = await response.json()
+    const productsData = await productsRes.json()
+    const registrationsData = await regRes.json()
 
-    console.log(data)
-
-    setEntitlements(data.entitlements)
+    setProducts(Object.values(productsData))
+    setRegistrations(registrationsData.registrations)
   }
 
-
   // subscribe to a new product
-  async function subscribe() {
-  if (!userId || !productId) return
-
+  async function subscribe(productId: string) {
     await fetch("/api/registrations", {
       method: "POST",
       headers: {
@@ -40,79 +40,100 @@ export default function Home() {
       }),
     })
 
-    // refresh UI after subscribe
-    await loadEntitlements()
+    await loadUserData()
+  }
+
+    function getRegistration(productId: string) {
+      return registrations.find(
+        (r) => r.productId === productId
+      )
+    }
+
+  // unsubscribe from a product
+  async function unsubscribe(productId: string) {
+
+    const registrationId = getRegistration(productId)
+
+    await fetch(`/api/registrations/${registrationId}/revoke`, {
+      method: "POST",
+    })
+
+    await loadUserData()
   }
 
   return (
     <div style={{ padding: 24 }}>
-      <h1>Entitlements Viewer</h1>
+      <h1>Subscriptions</h1>
 
-      <div style={{ marginTop: 12 }}>
+      {/* USER INPUT */}
+      <div style={{ marginBottom: 20 }}>
         <input
           value={userId}
-          onChange={(e) =>
-            setUserId(e.target.value)
-          }
-          placeholder="Enter user ID (e.g. u1)"
-          style={{
-            border: "1px solid #ccc",
-            padding: 8,
-            marginRight: 8,
-          }}
+          onChange={(e) => setUserId(e.target.value)}
+          placeholder="Enter user ID"
+          style={{ padding: 8, border: "1px solid #ccc" }}
         />
 
-        <button
-          onClick={loadEntitlements}
-          style={{
-            border: "1px solid black",
-            padding: "8px 12px",
-          }}
-        >
+        <button onClick={loadUserData} style={{ marginLeft: 8 }}>
           Load
         </button>
       </div>
 
-      <div style={{ marginTop: 20 }}>
-        <select
-          value={productId}
-          onChange={(e) =>
-            setProductId(e.target.value)
-          }
-          style={{
-            border: "1px solid #ccc",
-            padding: 8,
-            marginRight: 8,
-          }}
-        >
-          <option value="digital">Digital</option>
-          <option value="print">Print</option>
-          <option value="premium">Premium</option>
-        </select>
+      {/* PRODUCTS LIST */}
+      <div>
+        <h2>Products</h2>
 
-        <button
-          onClick={subscribe}
-          style={{
-            border: "1px solid black",
-            padding: "8px 12px",
-          }}
-        >
-          Subscribe
-        </button>
-      </div>
+        {products.map((product) => {
+          const reg = getRegistration(product.id)
+          const isSubscribed = !!reg
 
-      <div style={{ marginTop: 24 }}>
-        <h2>Entitlements</h2>
+          return (
+            <div
+              key={product.id}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: 12,
+                border: "1px solid #ddd",
+                marginTop: 8,
+              }}
+            >
+              <div>
+                <strong>{product.name}</strong>
+              </div>
 
-        {entitlements.length === 0 ? (
-          <p>No entitlements loaded</p>
-        ) : (
-          <ul>
-            {entitlements.map((e) => (
-              <li key={e}>{e}</li>
-            ))}
-          </ul>
-        )}
+              <div>
+                {isSubscribed ? (
+                  <button
+                    onClick={() =>
+                      unsubscribe(product.id)
+                    }
+                    style={{
+                      border: "1px solid red",
+                      color: "red",
+                      padding: "6px 10px",
+                    }}
+                  >
+                    Unsubscribe
+                  </button>
+                ) : (
+                  <button
+                    onClick={() =>
+                      subscribe(product.id)
+                    }
+                    style={{
+                      border: "1px solid green",
+                      color: "green",
+                      padding: "6px 10px",
+                    }}
+                  >
+                    Subscribe
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   );

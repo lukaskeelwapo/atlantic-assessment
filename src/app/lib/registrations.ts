@@ -1,7 +1,7 @@
 import { ProductId } from "./products"
 
 // A registration represents a specific user's access to a specific product
-type Registration = {
+export type Registration = {
     id: string,
 
     userId: string
