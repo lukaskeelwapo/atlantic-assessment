@@ -36,7 +36,7 @@ export function Product({
         {isSubscribed ? (
           <button
             onClick={() =>
-              onUnsubscribe(registration!.id)
+              onUnsubscribe(product.id)
             }
             style={{
               border: "1px solid red",

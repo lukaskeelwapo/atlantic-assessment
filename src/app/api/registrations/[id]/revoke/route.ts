@@ -5,9 +5,11 @@ export async function POST(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params
+  const { id } = await context.params
 
   const now = new Date()
+
+  console.log(id, "id")
 
   const registration = registrations.find(
     (r) => r.id === id

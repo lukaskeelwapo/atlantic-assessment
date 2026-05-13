@@ -53,7 +53,7 @@ export default function Home() {
   // unsubscribe from a product
   async function unsubscribe(productId: string) {
 
-    const registrationId = getRegistration(productId)
+    const registrationId = getRegistration(productId)?.id
 
     await fetch(`/api/registrations/${registrationId}/revoke`, {
       method: "POST",
