@@ -1,5 +1,5 @@
 import { Entitlements } from "@/app/lib/entitlements"
-import { REGISTRATIONS } from "@/app/lib/registrations"
+import { registrations } from "@/app/lib/registrations"
 
 // This returns a user's entitlements
 export async function POST(
@@ -9,19 +9,23 @@ export async function POST(
 
   const { userId, productId } = body
 
+  const now = new Date()
+
   const newRegistration = {
-    id: "RANDOM",
-
-    userId: userId,
-    productId: productId,
-
-    grantedAt: "NOW"
+    id: crypto.randomUUID(),
+    userId,
+    productId,
+    grantedAt: now.toISOString(),
   }
 
-  REGISTRATIONS.push(newRegistration)
+  registrations.push(newRegistration)
 
-  return Response.json({
-    userId,
-    entitlements: Object.values(Entitlements),
-  })
+  return Response.json(
+    {
+      success: true,
+      message: "Registration created successfully",
+      registration: newRegistration,
+    },
+    { status: 201 }
+  )
 }
